@@ -1,0 +1,3 @@
+{% for x in range(0, 255) %}
+ip route 10.100.{{x}}.0/24 Null0
+{% endfor %}

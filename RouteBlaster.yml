@@ -1,0 +1,12 @@
+---
+
+- name: Play 1 - Deploy mucho static routes to Spine1
+  hosts: spine1,spine2
+  gather_facts: no
+
+  tasks:
+
+    - name: Task 1 - Blast Routes
+      eos_config:
+        src: RouteBlaster.j2
+

@@ -1,0 +1,12 @@
+---
+
+- name: Play 1 - Remove mucho static routes from Spines
+  hosts: spine1,spine2
+  gather_facts: no
+
+  tasks:
+
+    - name: Task 1 - Obliterate Routes
+      eos_config:
+        src: RouteObliterator.j2
+

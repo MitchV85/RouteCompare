@@ -1,0 +1,21 @@
+{% if inventory_hostname == 'spine1' %}
+
+{% for x in range(0, 255) %}
+ip route 10.100.{{x}}.0/24 Null0
+{% endfor %}
+
+{% for x in range(0,21) %}
+ip route 10.55.{{x}}.0/24 Null0
+{% endfor %}
+
+{% else %}
+
+{% for x in range(0, 255) %}
+ip route 10.200.{{x}}.0/24 Null0
+{% endfor %}
+
+{% for x in range(0,21) %}
+ip route 10.55.{{x}}.0/24 Null0
+{% endfor %}
+
+{% endif %}
