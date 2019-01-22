@@ -35,8 +35,8 @@
         path: "{{ item }}"
         state: absent
       with_items:
-        - "/home/arista/ansible/RouteCompare/RouteCompareOutput/spine1_Routes"
-        - "/home/arista/ansible/RouteCompare/RouteCompareOutput/spine2_Routes"
+        - "/home/arista/ansible/RouteCompare/RouteCompareOutput/spine1_Routes.csv"
+        - "/home/arista/ansible/RouteCompare/RouteCompareOutput/spine2_Routes.csv"
       run_once: true
 
     - name: Write Routes to CSV File
