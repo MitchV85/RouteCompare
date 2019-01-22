@@ -1,13 +1,16 @@
 ---
 
-- name: Play 1 - Create List of Static Routes
+- name: Play 1 - Get Routes and Generate Comparison Output
   hosts: spine1,spine2
   vars:
-    output_path: ./RouteCompareOutput
-    filename: "{{inventory_hostname}}_Routes.csv"
+    output_path: "{{playbook_dir}}/RouteCompareOutput"
+    filename: "{{inventory_hostname}}_allroutes.csv"
   gather_facts: no
 
   tasks:
+
+    - name: Gather EOS Facts
+      eos_facts:
 
     - name:  Set Date Stamp
       set_fact: date="{{lookup('pipe','date +%Y.%m.%d_%H%m%S')}}"
@@ -19,30 +22,84 @@
           - show ip route | json
       register: allroutes
 
-    - name: Create Dict of vrf default Routes
+    - name: Create Dict of Routes
       set_fact:
         vrfdefaultroutes: "{{ allroutes.stdout[0].vrfs.default.routes }}"
 
-    - name: Create CSV File for Routes
-      lineinfile:
-        dest: "{{ output_path }}/{{ filename }}"
-        line: "Device Name,Route,Next Hop"
-        create: yes
-        state: present
+    - name: Create spine1routes variable
+      set_fact:
+        spine1routes: "{{ allroutes.stdout[0].vrfs.default.routes | list }}"
+      when: ansible_net_hostname == 'spine1'
+
+    - name: Create spine2routes variable
+      set_fact:
+        spine2routes: "{{ allroutes.stdout[0].vrfs.default.routes | list }}"
+      when: ansible_net_hostname == 'spine2'
+
+    - name: Debug spine1routes - Kept in Playbook to demo Debug capabilities "The print statement of Ansible :)"
+      debug:
+        var: spine1routes
 
     - name: Remove Output Files if they Exist
       file:
         path: "{{ item }}"
         state: absent
       with_items:
-        - "/home/arista/ansible/RouteCompare/RouteCompareOutput/spine1_Routes.csv"
-        - "/home/arista/ansible/RouteCompare/RouteCompareOutput/spine2_Routes.csv"
+        - "{{output_path}}/spine1_allroutes.csv"
+        - "{{output_path}}/spine2_allroutes.csv"
+        - "{{output_path}}/spine1_uniques.csv"
+        - "{{output_path}}/spine2_uniques.csv"
       run_once: true
 
-    - name: Write Routes to CSV File
+    - name: Create CSV File, with Headers, for AllRoutes Output
+      lineinfile:
+        dest: "{{ output_path }}/{{ filename }}"
+        line: "Device Name,Route,Next Hop"
+        create: yes
+        state: present
+
+    - name: Write All Routes to CSV File
       lineinfile:
         dest: "{{ output_path }}/{{ filename }}"
         line: "{{inventory_hostname}},{{item.key}},{{item.value.vias}}"
         create: yes
         state: present
       with_dict: "{{ vrfdefaultroutes }}"
+
+    - name: Create spine1uniques variable
+      set_fact:
+        spine1uniques: "{{ hostvars.spine1.spine1routes | difference(hostvars.spine2.spine2routes) }}"
+      run_once: true
+      
+    - name: Create spine2uniques variable
+      set_fact:
+        spine2uniques: "{{ hostvars.spine2.spine2routes | difference(hostvars.spine1.spine1routes) }}"
+      run_once: true
+
+    - name: Debug spine1uniques - Kept in Playbook to demo Debug capabilities "The print statement of Ansible :)"
+      debug:
+        var: spine1uniques
+      run_once: true
+
+    - name: Debug spine2uniques - Kept in Playbook to demo Debug capabilities "The print statement of Ansible :)"
+      debug:
+        var: spine2uniques
+      run_once: true
+
+    - name: Create Spine1Uniques CSV File
+      lineinfile:
+        dest: "{{ output_path }}/spine1_uniques.csv"
+        line: "{{ item }}"
+        create: yes
+        state: present
+      with_items: "{{ spine1uniques }}"
+      run_once: true
+
+    - name: Create Spine2Uniques CSV File
+      lineinfile:
+        dest: "{{ output_path }}/spine2_uniques.csv"
+        line: "{{ item }}"
+        create: yes
+        state: present
+      with_items: "{{ spine2uniques }}"
+      run_once: true
