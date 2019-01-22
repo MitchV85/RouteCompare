@@ -76,6 +76,11 @@
         spine2uniques: "{{ hostvars.spine2.spine2routes | difference(hostvars.spine1.spine1routes) }}"
       run_once: true
 
+    - name: Create spinecommonroutes variable
+      set_fact:
+        spinecommonroutes: "{{ hostvars.spine1.spine1routes | intersect(hostvars.spine2.spine2routes) }}"
+      run_once: true
+
     - name: Debug spine1uniques - Kept in Playbook to demo Debug capabilities "The print statement of Ansible :)"
       debug:
         var: spine1uniques
@@ -102,4 +107,13 @@
         create: yes
         state: present
       with_items: "{{ spine2uniques }}"
+      run_once: true
+
+    - name: Create Spine Common Routes File
+      lineinfile:
+        dest: "{{ output_path }}/spines_commonroutes.csv"
+        line: "{{ item }}"
+        create: yes
+        state: present
+      with_items: "{{ spinecommonroutes }}"
       run_once: true
