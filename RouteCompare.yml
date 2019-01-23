@@ -1,8 +1,10 @@
 ---
 
 - name: Play 1 - Get Routes and Generate Comparison Output
-  hosts: spine1,spine2
+  hosts: rtr2,rtr4
   vars:
+    ansible_user: admin
+    ansible_password: admin
     output_path: "{{playbook_dir}}/RouteCompareOutput"
     filename: "{{inventory_hostname}}_allroutes.csv"
   gather_facts: no
@@ -26,30 +28,30 @@
       set_fact:
         vrfdefaultroutes: "{{ allroutes.stdout[0].vrfs.default.routes }}"
 
-    - name: Create spine1routes variable
+    - name: Create rtr2routes variable
       set_fact:
-        spine1routes: "{{ allroutes.stdout[0].vrfs.default.routes | list }}"
-      when: ansible_net_hostname == 'spine1'
+        rtr2routes: "{{ allroutes.stdout[0].vrfs.default.routes | list }}"
+      when: ansible_net_hostname == 'rtr2'
 
-    - name: Create spine2routes variable
+    - name: Create rtr4routes variable
       set_fact:
-        spine2routes: "{{ allroutes.stdout[0].vrfs.default.routes | list }}"
-      when: ansible_net_hostname == 'spine2'
+        rtr4routes: "{{ allroutes.stdout[0].vrfs.default.routes | list }}"
+      when: ansible_net_hostname == 'rtr4'
 
-    - name: Debug spine1routes - Kept in Playbook to demo Debug capabilities "The print statement of Ansible :)"
+    - name: Debug rtr2routes - Kept in Playbook to demo Debug capabilities "The print statement of Ansible :)"
       debug:
-        var: spine1routes
+        var: rtr2routes
 
     - name: Remove Output Files if they Exist
       file:
         path: "{{ item }}"
         state: absent
       with_items:
-        - "{{output_path}}/spine1_allroutes.csv"
-        - "{{output_path}}/spine2_allroutes.csv"
-        - "{{output_path}}/spine1_uniques.csv"
-        - "{{output_path}}/spine2_uniques.csv"
-        - "{{output_path}}/spines_commonroutes.csv"
+        - "{{output_path}}/rtr2_allroutes.csv"
+        - "{{output_path}}/rtr4_allroutes.csv"
+        - "{{output_path}}/rtr2_uniques.csv"
+        - "{{output_path}}/rtr4_uniques.csv"
+        - "{{output_path}}/rtr2_commonroutes.csv"
       run_once: true
 
     - name: Create CSV File, with Headers, for AllRoutes Output
@@ -67,54 +69,54 @@
         state: present
       with_dict: "{{ vrfdefaultroutes }}"
 
-    - name: Create spine1uniques variable
+    - name: Create rtr2uniques variable
       set_fact:
-        spine1uniques: "{{ hostvars.spine1.spine1routes | difference(hostvars.spine2.spine2routes) }}"
+        rtr2uniques: "{{ hostvars.rtr2.rtr2routes | difference(hostvars.rtr4.rtr4routes) }}"
       run_once: true
       
-    - name: Create spine2uniques variable
+    - name: Create rtr4uniques variable
       set_fact:
-        spine2uniques: "{{ hostvars.spine2.spine2routes | difference(hostvars.spine1.spine1routes) }}"
+        rtr4uniques: "{{ hostvars.rtr4.rtr4routes | difference(hostvars.rtr2.rtr2routes) }}"
       run_once: true
 
-    - name: Create spinecommonroutes variable
+    - name: Create rtrcommonroutes variable
       set_fact:
-        spinecommonroutes: "{{ hostvars.spine1.spine1routes | intersect(hostvars.spine2.spine2routes) }}"
+        rtrcommonroutes: "{{ hostvars.rtr2.rtr2routes | intersect(hostvars.rtr4.rtr4routes) }}"
       run_once: true
 
-    - name: Debug spine1uniques - Kept in Playbook to demo Debug capabilities "The print statement of Ansible :)"
+    - name: Debug rtr2uniques - Kept in Playbook to demo Debug capabilities "The print statement of Ansible :)"
       debug:
-        var: spine1uniques
+        var: rtr2uniques
       run_once: true
 
-    - name: Debug spine2uniques - Kept in Playbook to demo Debug capabilities "The print statement of Ansible :)"
+    - name: Debug rtr4uniques - Kept in Playbook to demo Debug capabilities "The print statement of Ansible :)"
       debug:
-        var: spine2uniques
+        var: rtr4uniques
       run_once: true
 
-    - name: Create Spine1Uniques CSV File
+    - name: Create rtr2Uniques CSV File
       lineinfile:
-        dest: "{{ output_path }}/spine1_uniques.csv"
+        dest: "{{ output_path }}/rtr2_uniques.csv"
         line: "{{ item }}"
         create: yes
         state: present
-      with_items: "{{ spine1uniques }}"
+      with_items: "{{ rtr2uniques }}"
       run_once: true
 
-    - name: Create Spine2Uniques CSV File
+    - name: Create rtr4Uniques CSV File
       lineinfile:
-        dest: "{{ output_path }}/spine2_uniques.csv"
+        dest: "{{ output_path }}/rtr4_uniques.csv"
         line: "{{ item }}"
         create: yes
         state: present
-      with_items: "{{ spine2uniques }}"
+      with_items: "{{ rtr4uniques }}"
       run_once: true
 
-    - name: Create Spine Common Routes File
+    - name: Create RTR Common Routes File
       lineinfile:
-        dest: "{{ output_path }}/spines_commonroutes.csv"
+        dest: "{{ output_path }}/rtr_commonroutes.csv"
         line: "{{ item }}"
         create: yes
         state: present
-      with_items: "{{ spinecommonroutes }}"
+      with_items: "{{ rtrcommonroutes }}"
       run_once: true

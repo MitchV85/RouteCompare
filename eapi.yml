@@ -1,0 +1,24 @@
+---
+
+- name: Enable eAPI
+  gather_facts: no
+  hosts: all
+  vars:
+    ansible_connection: network_cli
+
+  tasks:
+
+    - name: Enable eAPI
+      eos_eapi:
+
+    - name: No Shut eAPI
+      eos_config:
+        lines:
+          - no shutdown
+          - protocol http
+        parents: management api http-commands
+
+    - name: Create admin user
+      eos_config:
+        lines:
+          - username admin sec admin priv 15

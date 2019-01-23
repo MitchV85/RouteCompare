@@ -1,8 +1,11 @@
 ---
 
-- name: Play 1 - Deploy mucho routes to Spine1 and Spine2
-  hosts: spine1,spine2
+- name: Play 1 - Deploy mucho routes to rtr2 and rtr4
+  hosts: rtr2,rtr4
   gather_facts: no
+  vars:
+    ansible_user: admin
+    ansible_password: admin
 
   tasks:
 
