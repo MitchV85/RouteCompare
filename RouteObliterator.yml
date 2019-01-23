@@ -2,6 +2,9 @@
 
 - name: Play 1 - Remove mucho static routes from Spines
   hosts: rtr2,rtr4
+  vars:
+    ansible_user: admin
+    ansible_password: admin
   gather_facts: no
 
   tasks:
