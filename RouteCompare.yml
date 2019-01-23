@@ -22,7 +22,7 @@
           - show ip route | json
       register: allroutes
 
-    - name: Create Dict of Routes
+    - name: Create variable from route output
       set_fact:
         vrfdefaultroutes: "{{ allroutes.stdout[0].vrfs.default.routes }}"
 
@@ -49,6 +49,7 @@
         - "{{output_path}}/spine2_allroutes.csv"
         - "{{output_path}}/spine1_uniques.csv"
         - "{{output_path}}/spine2_uniques.csv"
+        - "{{output_path}}/spines_commonroutes.csv"
       run_once: true
 
     - name: Create CSV File, with Headers, for AllRoutes Output

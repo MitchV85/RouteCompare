@@ -1,6 +1,6 @@
 ---
 
-- name: Play 1 - Deploy mucho static routes to Spine1 and Spine2
+- name: Play 1 - Deploy mucho routes to Spine1 and Spine2
   hosts: spine1,spine2
   gather_facts: no
 
